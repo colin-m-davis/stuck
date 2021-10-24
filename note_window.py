@@ -1,7 +1,8 @@
 from PySide6 import QtCore, QtGui, QtWidgets
+from PySide6.QtCore import Slot
 
 from sidegrip import CSizeGrip, SideGrip
-
+from note_contents import noteContents
 import db
 
 
@@ -12,7 +13,7 @@ class noteWindow(QtWidgets.QMainWindow):
         self.resize(360, 360)
         self.setMinimumSize(90, 90)
         self.setWindowOpacity(0.9)
-        self.setWindowFlags(self.windowFlags() | QtCore.Qt.FramelessWindowHint | QtCore.Qt.WindowStaysOnTopHint)
+        self.setWindowFlags(self.windowFlags() | QtCore.Qt.FramelessWindowHint)
 
         self.sideGrips = None
         self.cornerGrips = None
@@ -25,7 +26,12 @@ class noteWindow(QtWidgets.QMainWindow):
         p.setColor(QtGui.QPalette.Window, QtGui.QColor(48, 48, 48))
         self.setPalette(p)
 
+        f = noteContents(parent=self)
+        self.setCentralWidget(f)
+        self.centralWidget()
+
         self.show()
+        self.raise_()
 
         if obj:
             self.obj = obj
@@ -108,6 +114,12 @@ class noteWindow(QtWidgets.QMainWindow):
         db.session.commit()
         print(self.obj)
         QtWidgets.QApplication.instance().activeNotes[self.obj.id] = self
+
+    @Slot()
+    def delete(self):
+        db.session.delete(self.obj)
+        db.session.commit()
+        self.close()
 
     def resizeEvent(self, event):
         QtWidgets.QMainWindow.resizeEvent(self, event)
